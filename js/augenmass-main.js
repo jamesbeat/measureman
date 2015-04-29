@@ -35,13 +35,19 @@ var line_style = "#00f";
 var background_line_style = 'rgba(255, 255, 0, 0.4)';
 var background_line_width = 7;
 
+var box_style = "#00f";
+var background_box_style = 'rgba(255, 0, 0, 0.4)';
+var background_box_width = 7;
+
 // On highlight.
 var highlight_line_style = "#f00";
 var background_highlight_line_style = 'rgba(0, 255, 255, 0.4)';
+var highlight_box_style = "#f00";
+var background_highlight_box_style = 'rgba(0, 255, 255, 0.4)';
 
 var length_font_pixels = 12;
 var angle_font_pixels = 10;
-var loupe_magnification = 7;
+var loupe_magnification = 15;
 var end_bracket_len = 5;
 
 // These variables need to be cut down and partially be private
@@ -49,6 +55,7 @@ var end_bracket_len = 5;
 var help_system;
 var aug_view;
 var backgroundImage;  // if loaded. Also used by the loupe.
+
 
 // Init function. Call once on page-load.
 function augenmass_init() {
@@ -106,7 +113,9 @@ function AugenmassController(canvas, view) {
     canvas.addEventListener("dblclick", function(e) {
 	extract_event_pos(e, onDoubleClick);
     });
+      
     document.addEventListener("keydown", onKeyEvent);
+    document.addEventListener("keyup", offKeyEvent);
 
     function extract_event_pos(e, callback) {
 	// browser and scroll-independent extraction of mouse cursor in canvas.
@@ -129,75 +138,145 @@ function AugenmassController(canvas, view) {
     function getView() { return view; }
 
     function cancelCurrentLine() {
-	if (getModel().hasEditLine()) {
-	    getModel().forgetEditLine();
-	    getView().drawAll();
-	}
+		if (getModel().hasEditLine()) {
+		    getModel().forgetEditLine();
+		    getView().drawAll();
+		}
+    }
+    
+    function cancelCurrentBox() {
+		if (getModel().hasEditBox()) {
+		    getModel().forgetEditBox();
+		    getView().drawAll();
+		}
     }
     
     function onKeyEvent(e) {
-	if (e.keyCode == 27) {  // ESC key.
-	    cancelCurrentLine();
-	}
+		if (e.keyCode == 27) {  // ESC key.
+		    cancelCurrentLine();
+		}
+		if (e.keyCode == 16) {  // Shiftkey.
+		   
+		}
+		if (e.keyCode == 18) {  // Alt key.
+		    
+		}
+		
+    }
+    function offKeyEvent(e){
+	    
+	    if (e.keyCode == 16) {  // Shiftkey.
+		    
+		}
+		if (e.keyCode == 18) {  // Alt key.
+		     
+		}
+
     }
 
     function onMove(e, x, y) {
-	if (backgroundImage === undefined)
-	    return;
-	var has_editline = getModel().hasEditLine();
-	if (has_editline) {
-	    getModel().updateEditLine(x, y);
-	}
-	showFadingLoupe(x, y);
-	if (!has_editline)
-	    return;
-	getView().drawAll();
+		if (backgroundImage === undefined)
+		    return;
+		     showFadingLoupe(x, y);
+		var has_editline = getModel().hasEditLine();
+		var has_editbox = getModel().hasEditBox();
+		if (has_editline) {
+		    getModel().updateEditLine(x, y);
+		   
+		}
+		else if(has_editbox){
+			 getModel().updateEditBox(x, y);
+			 
+		}
+		else{
+			return;
+		}
+		showFadingLoupe(x, y);
+		getView().drawAll();
     }
     
     this.onClick = function(e, x, y) {
-	if (e.which != undefined && e.which == 3) {
-	    // right mouse button.
-	    cancelCurrentLine();
-	    return;
-	}
-	var now = new Date().getTime();
-	if (!getModel().hasEditLine()) {
-	    getModel().startEditLine(x, y);
-	    this.start_line_time_ = now;
-	    help_system.achievementUnlocked(HelpLevelEnum.DONE_START_LINE);
-	} else {
-	    var line = getModel().updateEditLine(x, y);
-	    // Make sure that this was not a double-click event.
-	    // (are there better ways ?)
-	    if (line.length() > 50
-		|| (line.length() > 0 && (now - this.start_line_time_) > 500)) {
-		getModel().commitEditLine();
-		help_system.achievementUnlocked(HelpLevelEnum.DONE_FINISH_LINE);
-	    } else {
-		getModel().forgetEditLine();
-	    }
-	}
-	getView().drawAll();
+	        
+		var now = new Date().getTime();
+		
+		if(e.which != undefined && e.which == 3){ //Right mouseclick: BOX
+			
+			if (!getModel().hasEditBox()) {
+			    getModel().startEditBox(x, y);
+			    this.start_line_time_ = now;
+			    help_system.achievementUnlocked(HelpLevelEnum.DONE_START_BOX);
+			    
+			    console.log("box1");
+			} else {
+			    var box = getModel().updateEditBox(x, y);
+			    // Make sure that this was not a double-click event.
+			    // (are there better ways ?)
+			    if (box.width() > 50
+				|| (box.width() > 0 && (now - this.start_line_time_) > 500)) {
+				getModel().commitEditBox();
+				help_system.achievementUnlocked(HelpLevelEnum.DONE_FINISH_BOX);
+			    } else {
+				getModel().forgetEditBox();
+			    }
+			     console.log("box2");
+			}
+			getView().drawAll();
+
+			
+		}
+		else{ //Right mouseclick: LINE
+						
+			if (!getModel().hasEditLine()) {
+			    getModel().startEditLine(x, y);
+			    this.start_line_time_ = now;
+			    
+			    help_system.achievementUnlocked(HelpLevelEnum.DONE_START_LINE);
+			} else {
+			    var line = getModel().updateEditLine(x, y);
+			    // Make sure that this was not a double-click event.
+			    // (are there better ways ?)
+			    if (line.length() > 50
+				|| (line.length() > 0 && (now - this.start_line_time_) > 500)) {
+				getModel().commitEditLine();
+				help_system.achievementUnlocked(HelpLevelEnum.DONE_FINISH_LINE);
+			    } else {
+				getModel().forgetEditLine();
+			    }
+			}
+			getView().drawAll();
+		}
     }
 
     function onDoubleClick(e, x, y) {
-	cancelCurrentLine();
-	var selected_line = getModel().findClosest(x, y);
-	if (selected_line == undefined)
-	    return;
-	getView().highlightLine(selected_line);
-	var orig_len_txt = (getView().getUnitsPerPixel()
-			    * selected_line.length()).toPrecision(4);
-	var new_value_txt = prompt("Length of selected line ?", orig_len_txt);
-	if (orig_len_txt != new_value_txt) {
-	    var new_value = parseFloat(new_value_txt);
-	    if (new_value && new_value > 0) {
-		getView().setUnitsPerPixel(new_value / selected_line.length());
-	    }
+		cancelCurrentLine();
+		cancelCurrentBox();
+		var selected_line = getModel().findClosestLine(x, y);
+		var selected_box = getModel().findClosestBox(x, y);
+		
+		if (selected_line == undefined){		}
+		else{
+				  
+			getView().highlightLine(selected_line);
+								    			    
+			if (confirm('Delete?')) {
+			    selected_line = getModel().removeLine(selected_line);
+			    getView().drawAll();
+			} 
+		}
+				
+		if (selected_box == undefined){		}
+		else{
+				  
+			getView().highlightBox(selected_box);
+								    			    
+			if (confirm('Delete?')) {
+			    selected_box = getModel().removeBox(selected_box);
+			    getView().drawAll();
+			} 
+		}
+		
+		
 	}
-	help_system.achievementUnlocked(HelpLevelEnum.DONE_SET_LEN);
-	getView().drawAll();
-    }
 }
 
 function scrollTop() {

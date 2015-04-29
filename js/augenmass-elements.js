@@ -41,6 +41,39 @@ function Line(x1, y1, x2, y2) {
     }
 }
 
+
+function Box(x1, y1, x2, y2) {
+    // The canvas coordinate system numbers the space _between_ pixels
+    // as full coordinage. Correct for that.
+    this.p1 = new Point(x1 + 0.5, y1 + 0.5);
+    this.p2 = new Point(x2 + 0.5, y2 + 0.5);
+
+    // While editing: updating second end of the line.
+    this.updatePos = function(x2, y2) {
+	this.p2.update(x2 + 0.5, y2 + 0.5);
+    }
+
+    // Helper for determining selection: how far is the given position from the
+    // center text.
+    this.distanceToCenter = function(x, y) {
+	var centerX = (this.p1.x + this.p2.x)/2;
+	var centerY = (this.p1.y + this.p2.y)/2;
+	return euklid_distance(centerX, centerY, x, y);
+    }
+    
+    
+    this.width = function() {
+		return Math.abs(this.p1.x - this.p2.x);
+    }
+
+
+	this.height = function() {
+		return Math.abs(this.p1.y - this.p2.y);
+    }
+
+}
+
+
 // Represents the (CCW) angle of the line between "center_p" center point and
 // point "remote_p" with respect to the horizontal line.
 function Angle(center_p, remote_p, line) {
