@@ -40,6 +40,42 @@ function drawLoupeLine(ctx, line, off_x, off_y, factor) {
     ctx.stroke();
 }
 
+function drawLoupeBox(ctx, box, off_x, off_y, factor) {
+    // these 0.5 offsets seem to look inconclusive on Chrome and Firefox.
+    // Need to go deeper.
+    ctx.beginPath();
+    var x1pos = (box.p1.x - off_x), y1pos = (box.p1.y - off_y);
+    var x2pos = (box.p2.x - off_x), y2pos = (box.p2.y - off_y);
+    var out_x;
+    var out_y;
+    if(x1pos < x2pos){ out_x = 0.5; } else{ out_x = -0.5; }
+    if(y1pos < y2pos){ out_y = 0.5; } else{ out_y = -0.5; }
+    
+    ctx.moveTo((x1pos - out_x) * factor, (y1pos - out_y) * factor);
+    ctx.lineTo((x2pos + out_x) * factor, (y1pos - out_y) * factor);
+    ctx.lineTo((x2pos + out_x) * factor, (y2pos + out_y) * factor);
+    ctx.lineTo((x1pos - out_x) * factor, (y2pos + out_y) * factor);
+    ctx.lineTo((x1pos - out_x) * factor, (y1pos - out_y) * factor);
+    ctx.stroke();
+    // We want circles that circumreference the pixel in question.
+    ctx.beginPath();
+    
+    ctx.moveTo((x1pos - 0.5) * factor, (y1pos - 0.5) * factor);
+    ctx.lineTo((x1pos + 0.5) * factor, (y1pos - 0.5) * factor);
+    ctx.lineTo((x1pos + 0.5) * factor, (y1pos + 0.5) * factor);
+    ctx.lineTo((x1pos - 0.5) * factor, (y1pos + 0.5) * factor);
+    ctx.lineTo((x1pos - 0.5) * factor, (y1pos - 0.5) * factor);
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo((x2pos - 0.5) * factor, (y2pos - 0.5) * factor);
+    ctx.lineTo((x2pos + 0.5) * factor, (y2pos - 0.5) * factor);
+    ctx.lineTo((x2pos + 0.5) * factor, (y2pos + 0.5) * factor);
+    ctx.lineTo((x2pos - 0.5) * factor, (y2pos + 0.5) * factor);
+    ctx.lineTo((x2pos - 0.5) * factor, (y2pos - 0.5) * factor);
+    ctx.stroke();
+}
+
 function showLoupe(x, y) {
     if (backgroundImage === undefined || loupe_ctx === undefined)
 	return;
@@ -130,10 +166,19 @@ function showLoupe(x, y) {
 	    drawLoupeLine(loupe_ctx, line, l_off_x, l_off_y,
 			  loupe_magnification);
 	});
+	model.forAllBoxes(function(box) {
+	    drawLoupeBox(loupe_ctx, box, l_off_x, l_off_y,
+			  loupe_magnification);
+	});
 	if (model.hasEditLine()) {
 	    drawLoupeLine(loupe_ctx, model.getEditLine(), l_off_x, l_off_y,
 			  loupe_magnification);
 	}
+	else if (model.hasEditBox()) {
+	    drawLoupeBox(loupe_ctx, model.getEditBox(), l_off_x, l_off_y,
+			  loupe_magnification);
+	}
+
     }
 }
 

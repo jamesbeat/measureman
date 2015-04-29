@@ -26,8 +26,23 @@ function AugenmassModel() {
 		return this.current_line_;
     }
 
+	//determine where to snap, horizontal or vertical Sectors
+	this.getSector = function() {
+		var line = this.current_line_;
+		var a = new Angle(line.p1, line.p2, line);
+			
+		if((a.angle >= Math.PI/4 && a.angle <= 3 * Math.PI/4)){ return "N"; } 
+		else if((a.angle > 3 * Math.PI/4 && a.angle <= 5 * Math.PI/4)){ return "W"; } 
+		else if((a.angle > 5 * Math.PI/4 && a.angle <= 7 * Math.PI/4)){ return "S"; } 
+		else if((a.angle >= 0 && a.angle < Math.PI/4) || (a.angle > 7 * Math.PI/4 && a.angle < Math.PI*2)){ return "O"; } 
+		else{
+			return "X";
+		}		
+	}
+
     this.commitEditLine = function() {
 		var line = this.current_line_;
+					
 		this.lines_[this.lines_.length] = line;
 		this.addAngle(line.p2, line.p1, line);
 		this.current_line_ = undefined;
@@ -193,6 +208,23 @@ function AugenmassModel() {
 		for (var i = 0; i < this.boxes_.length; ++i) {
 		    cb(this.boxes_[i]);
 		}
+    }
+    
+    
+    //export Arrays for external view
+    
+    this.exportLines = function(){
+	    
+	    var linedata = JSON.stringify(this.lines_);
+	    return linedata;
+	    
+    }
+    
+    this.exportBoxes = function(){
+	    
+	    var boxarray = this.boxes_;
+	    return boxarray;
+	    
     }
 
 }

@@ -32,18 +32,18 @@
 // How lines usually look like (blue with yellow background should make
 // it sufficiently distinct in many images).
 var line_style = "#00f";
-var background_line_style = 'rgba(255, 255, 0, 0.4)';
+var background_line_style = 'rgba(255, 255, 0, 0.6)';
 var background_line_width = 7;
 
 var box_style = "#00f";
-var background_box_style = 'rgba(255, 0, 0, 0.4)';
+var background_box_style = 'rgba(50, 255, 0, 0.4)';
 var background_box_width = 7;
 
 // On highlight.
 var highlight_line_style = "#f00";
 var background_highlight_line_style = 'rgba(0, 255, 255, 0.4)';
 var highlight_box_style = "#f00";
-var background_highlight_box_style = 'rgba(0, 255, 255, 0.4)';
+var background_highlight_box_style = 'rgba(50, 255, 0, 0.8)';
 
 var length_font_pixels = 12;
 var angle_font_pixels = 10;
@@ -55,6 +55,8 @@ var end_bracket_len = 5;
 var help_system;
 var aug_view;
 var backgroundImage;  // if loaded. Also used by the loupe.
+
+var snap = false;
 
 
 // Init function. Call once on page-load.
@@ -156,20 +158,20 @@ function AugenmassController(canvas, view) {
 		    cancelCurrentLine();
 		}
 		if (e.keyCode == 16) {  // Shiftkey.
-		   
+		    snap = true;
 		}
 		if (e.keyCode == 18) {  // Alt key.
-		    
+		   console.log(getModel().exportLines());
 		}
 		
     }
     function offKeyEvent(e){
 	    
 	    if (e.keyCode == 16) {  // Shiftkey.
-		    
+		    snap = false;
 		}
 		if (e.keyCode == 18) {  // Alt key.
-		     
+		    console.log(getModel().exportBoxes()); 
 		}
 
     }
@@ -206,7 +208,7 @@ function AugenmassController(canvas, view) {
 			    this.start_line_time_ = now;
 			    help_system.achievementUnlocked(HelpLevelEnum.DONE_START_BOX);
 			    
-			    console.log("box1");
+			    
 			} else {
 			    var box = getModel().updateEditBox(x, y);
 			    // Make sure that this was not a double-click event.
@@ -218,13 +220,13 @@ function AugenmassController(canvas, view) {
 			    } else {
 				getModel().forgetEditBox();
 			    }
-			     console.log("box2");
+			     
 			}
 			getView().drawAll();
 
 			
 		}
-		else{ //Right mouseclick: LINE
+		else{ //LEFT mouseclick: LINE
 						
 			if (!getModel().hasEditLine()) {
 			    getModel().startEditLine(x, y);
@@ -237,6 +239,21 @@ function AugenmassController(canvas, view) {
 			    // (are there better ways ?)
 			    if (line.length() > 50
 				|| (line.length() > 0 && (now - this.start_line_time_) > 500)) {
+					
+				if(snap){
+					console.log("snap:"+snap);
+					var sector = getModel().getSector(line);
+								
+					switch(sector){
+						
+						case "N": line.p2.x = line.p1.x; break;
+						case "O": line.p2.y = line.p1.y; break;
+						case "S": line.p2.x = line.p1.x; break;
+						case "W": line.p2.y = line.p1.y; break;
+						default: break;
+					}
+					
+				}	
 				getModel().commitEditLine();
 				help_system.achievementUnlocked(HelpLevelEnum.DONE_FINISH_LINE);
 			    } else {

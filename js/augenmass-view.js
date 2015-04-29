@@ -168,6 +168,21 @@ function AugenmassView(canvas) {
 		}
     }
 
+	//determine where to snap, horizontal or vertical Sectors
+	function getSector(line){
+		
+		var a = new Angle(line.p1, line.p2, line);
+			
+		if((a.angle >= Math.PI/4 && a.angle <= 3 * Math.PI/4)){ return "N"; } 
+		else if((a.angle > 3 * Math.PI/4 && a.angle <= 5 * Math.PI/4)){ return "W"; } 
+		else if((a.angle > 5 * Math.PI/4 && a.angle <= 7 * Math.PI/4)){ return "S"; } 
+		else if((a.angle >= 0 && a.angle < Math.PI/4) || (a.angle > 7 * Math.PI/4 && a.angle < Math.PI*2)){ return "O"; } 
+		else{
+			return "X";
+		}		
+	}
+
+
     // Drawing the line while editing.
     // We only show the t-anchor on the start-side. Also the line is
     // 1-2 pixels shorter where the mouse-cursor is, so that we don't cover
@@ -183,6 +198,24 @@ function AugenmassView(canvas) {
 		    dx = dx * (pixel_len - 2)/pixel_len;
 		    dy = dy * (pixel_len - 2)/pixel_len;
 		}
+			
+		if(snap){
+			
+			var sector = getSector(line);
+			console.log(sector);
+			
+			switch(sector){
+				
+				case "N": dx = 0; line.p2.x = line.p1.x; break;
+				case "O": dy = 0; line.p2.y = line.p1.y; break;
+				case "S": dx= 0; line.p2.x = line.p1.x; break;
+				case "W": dy = 0; line.p2.y = line.p1.y; break;
+				default: break;
+			}
+			
+		}
+	
+	
 	
 		// Background for t-line
 		ctx.beginPath();
@@ -213,7 +246,7 @@ function AugenmassView(canvas) {
 	
 		// ... and actual line.
 		ctx.beginPath();
-		ctx.strokeStyle = '#00F';
+		ctx.strokeStyle = '#FF0000';
 		ctx.lineWidth = 1;
 		ctx.moveTo(line.p1.x, line.p1.y);
 		ctx.lineTo(line.p1.x + dx, line.p1.y + dy);
@@ -236,8 +269,8 @@ function AugenmassView(canvas) {
 		}
 	    }
 	
-	    // General draw of a measuring line.
-	    function drawMeasureLine(ctx, line, length_factor, show_deltas, highlight) {
+	// General draw of a measuring line.
+	function drawMeasureLine(ctx, line, length_factor, show_deltas, highlight) {
 		var print_text = (length_factor * line.length()).toPrecision(4);
 		if (show_deltas && line.p1.x != line.p2.x && line.p1.y != line.p2.y) {
 		    var dx = length_factor * (line.p2.x - line.p1.x);
@@ -245,6 +278,8 @@ function AugenmassView(canvas) {
 		    print_text += "; \u0394=(" + Math.abs(dx).toPrecision(4) + ", "
 			+ Math.abs(dy).toPrecision(4) + ")";
 		}
+			
+		
 		ctx.beginPath();
 		// Some contrast background.
 		if (highlight) {
@@ -292,10 +327,9 @@ function AugenmassView(canvas) {
 
     // Write a label with a contrasty background.
     function writeLabel(ctx, txt, x, y, alignment) {
-		ctx.font = 'bold ' + length_font_pixels + 'px Sans Serif';
+		ctx.font = length_font_pixels + 'px Arial';
 		ctx.textBaseline = 'middle';
 		ctx.textAlign = alignment;
-		
 		
 		var lines = txt.split("\n");
 		
@@ -305,27 +339,34 @@ function AugenmassView(canvas) {
 		ctx.beginPath();
 		var dx = ctx.measureText(longest).width;
 		var dy = ctx.measureText("M").width * 1.2;
-		ctx.lineWidth = length_font_pixels + 5 * lines.length;  // TODO: find from style.
+		
+		ctx.lineWidth =  28 ;  // TODO: find from style.
 		ctx.lineCap = 'round';
+		ctx.lineJoin = "round";
 		ctx.strokeStyle = background_line_style;
+		
 		var line_x = x;
+		var line_y = y - (dy * lines.length)/2;
+		
+		
+		
 		if (alignment == 'center') {
 		    line_x -= dx/2;
 		}
 		else if (alignment == 'right') {
 		    line_x -= dx;
 		}
-		ctx.moveTo(line_x, y);
-		
-		
-		
-		ctx.lineTo(line_x + dx, y);
+		ctx.moveTo(line_x, line_y);
+		ctx.lineTo(line_x + dx, line_y);
+		ctx.lineTo(line_x + dx, line_y + dy * lines.length -10);
+		ctx.lineTo(line_x, line_y + dy * lines.length -10);
+		ctx.lineTo(line_x, line_y);
 		ctx.stroke();
 		ctx.fillStyle = '#000';
 		
 		for (var i = 0; i < lines.length; ++i) {
-		   ctx.fillText(lines[i], x, y);
-		   y += dy;
+		   ctx.fillText(lines[i], x, line_y);
+		   line_y += dy;
 		}
     }
 
@@ -377,7 +418,7 @@ function AugenmassView(canvas) {
 			
 		// ... and actual line.
 		ctx.beginPath();
-		ctx.strokeStyle = '#00F';
+		ctx.strokeStyle = '#FF0000';
 		ctx.lineWidth = 1;
 		ctx.moveTo(box.p1.x, box.p1.y);
 		ctx.lineTo(box.p2.x, box.p1.y);
@@ -399,8 +440,7 @@ function AugenmassView(canvas) {
 			text_dx = -dx * text_len/(2 * pixel_len);
 			text_dy = -dy * (length_font_pixels + 10)/(2 * pixel_len);
 		    }
-		    writeLabel(ctx, print_text, box.p1.x + text_dx, box.p1.y + text_dy,
-			       "center");
+		    writeLabel(ctx, print_text, box.p1.x + text_dx, box.p1.y + text_dy,"center");
 		}
     }
     
