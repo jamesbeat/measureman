@@ -60,7 +60,8 @@ var snap = false;
 
 
 // Init function. Call once on page-load.
-function augenmass_init() {
+function measureman_init() {
+		
     help_system = new HelpSystem(document.getElementById('helptext'));
     aug_view = new AugenmassView(document.getElementById('measure'));
 
